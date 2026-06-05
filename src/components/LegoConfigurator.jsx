@@ -1,8 +1,6 @@
-import React from 'react';
 import { LegoMinifig } from './LegoMinifig';
 import {
   playLegoPop,
-  playSlideWhistle,
   playUnlockChime
 } from '../utils/audio';
 
@@ -344,13 +342,13 @@ export function LegoConfigurator({ activeProfile, minifig, onChange, onSave }) {
     <section className="configurator-page-wrapper">
       <div className="configurator-container">
         
-        {/* LEFT PANEL: Head, Torso, Accessory */}
+        {/* LEFT PANEL: Head, Torso, Legs */}
         <div className="configurator-panel left">
           
           {/* Card 1: Heads Selection */}
-          <div className="lego-card option-card" data-component="HeadsSelectCard">
-            <h3 className="card-heading">😀 Expression Face</h3>
-            <div className="options-grid scrollable">
+          <div className="lego-card option-card heads-card" data-component="HeadsSelectCard">
+            <h3 className="card-heading">Heads & Expressions</h3>
+            <div className="options-grid heads-grid">
               {headsOptions.map(headExp => (
                 <button
                   key={headExp}
@@ -364,9 +362,9 @@ export function LegoConfigurator({ activeProfile, minifig, onChange, onSave }) {
           </div>
 
           {/* Card 2: Torso Selection */}
-          <div className="lego-card option-card" data-component="TorsosSelectCard">
-            <h3 className="card-heading">👕 Torso Prints</h3>
-            <div className="options-grid grid-2x2">
+          <div className="lego-card option-card torso-card" data-component="TorsosSelectCard">
+            <h3 className="card-heading">Torso & Outfits</h3>
+            <div className="options-grid outfit-strip">
               {torsosOptions.map(torsoStyle => (
                 <button
                   key={torsoStyle}
@@ -379,10 +377,89 @@ export function LegoConfigurator({ activeProfile, minifig, onChange, onSave }) {
             </div>
           </div>
 
-          {/* Card 3: Accessory Selection */}
-          <div className="lego-card option-card" data-component="AccessoriesSelectCard">
-            <h3 className="card-heading">🍌 Held Accessories</h3>
-            <div className="options-grid scrollable">
+          {/* Card 3: Legs Selection */}
+          <div className="lego-card option-card legs-card" data-component="LegsSelectCard">
+            <h3 className="card-heading">Leg Choices</h3>
+            <div className="options-grid legs-grid">
+              {legsOptions.map(legsStyle => (
+                <button
+                  key={legsStyle}
+                  className={`option-btn ${minifig.legs === legsStyle ? 'selected' : ''}`}
+                  onClick={() => handleSelect('legs', legsStyle)}
+                >
+                  <LegsPreview type={legsStyle} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* MIDDLE PREVIEW AREA */}
+        <div className="configurator-preview-area">
+          <div className="blueprint-circle">
+            {/* Lego Baseplate Circular Pedestal */}
+            <div className="lego-pedestal">
+              <div className="pedestal-top">
+                {Array.from({ length: 18 }).map((_, i) => <span key={i}></span>)}
+              </div>
+              <div className="pedestal-shadow"></div>
+            </div>
+
+            {/* Dynamic Minifigure */}
+            <div className="preview-fig-wrapper">
+              <LegoMinifig
+                {...minifig}
+                size={330}
+                isWalking={false}
+              />
+            </div>
+          </div>
+
+          {/* Active stats display */}
+          <div className="active-config-bar">
+            <span>Configuring: <strong style={{ color: 'var(--lego-blue-dark)' }}>{activeProfile?.name || 'Cadet'}</strong></span>
+          </div>
+
+          <div className="ability-dock">
+            {['speed', 'bulb', 'shield', 'brick'].map(badgeType => (
+              <BadgePreview
+                key={badgeType}
+                type={badgeType}
+                active={minifig.badges.includes(badgeType)}
+                onClick={() => toggleBadge(badgeType)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: Hair/Hat, Accessories, Save */}
+        <div className="configurator-panel right">
+          
+          {/* Card 1: Hair & Hats Selection */}
+          <div className="lego-card option-card hair-card" data-component="HairSelectCard">
+            <h3 className="card-heading">Headwear & Hair</h3>
+            <div className="options-grid hair-grid">
+              {hairOptions.map(hairStyle => (
+                <button
+                  key={hairStyle}
+                  className={`option-btn ${minifig.hair === hairStyle ? 'selected' : ''}`}
+                  onClick={() => handleSelect('hair', hairStyle)}
+                >
+                  {hairStyle === 'none' ? (
+                    <span style={{ fontSize: '1.8rem', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🚫</span>
+                  ) : (
+                    <HairPreview type={hairStyle} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 2: Accessory Selection */}
+          <div className="lego-card option-card accessory-card" data-component="AccessoriesSelectCard">
+            <h3 className="card-heading">Accessories & Tools</h3>
+            <div className="options-grid accessory-grid">
               {accessoriesOptions.map(item => (
                 <button
                   key={item}
@@ -400,91 +477,19 @@ export function LegoConfigurator({ activeProfile, minifig, onChange, onSave }) {
             </div>
           </div>
 
-        </div>
-
-        {/* MIDDLE PREVIEW AREA */}
-        <div className="configurator-preview-area">
-          <div className="blueprint-circle">
-            {/* Lego Baseplate Circular Pedestal */}
-            <div className="lego-pedestal">
-              <div className="pedestal-top"></div>
-              <div className="pedestal-shadow"></div>
-            </div>
-
-            {/* Dynamic Minifigure */}
-            <div className="preview-fig-wrapper">
-              <LegoMinifig
-                {...minifig}
-                size={290}
-                isWalking={false}
-              />
-            </div>
-          </div>
-
-          {/* Active stats display */}
-          <div className="active-config-bar">
-            <span>Configuring: <strong style={{ color: 'var(--lego-blue-dark)' }}>{activeProfile?.name || 'Cadet'}</strong></span>
-          </div>
-          
-          <button
-            className="lego-button green save-btn"
-            onClick={handleSaveClick}
-          >
-            <span>Save & Apply 🚀</span>
-          </button>
-        </div>
-
-        {/* RIGHT PANEL: Hair/Hat, Legs, Badges */}
-        <div className="configurator-panel right">
-          
-          {/* Card 1: Hair & Hats Selection */}
-          <div className="lego-card option-card" data-component="HairSelectCard">
-            <h3 className="card-heading">🧢 Hair & Hats</h3>
-            <div className="options-grid grid-2x3">
-              {hairOptions.map(hairStyle => (
-                <button
-                  key={hairStyle}
-                  className={`option-btn ${minifig.hair === hairStyle ? 'selected' : ''}`}
-                  onClick={() => handleSelect('hair', hairStyle)}
-                >
-                  {hairStyle === 'none' ? (
-                    <span style={{ fontSize: '1.8rem', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🚫</span>
-                  ) : (
-                    <HairPreview type={hairStyle} />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Card 2: Legs Selection */}
-          <div className="lego-card option-card" data-component="LegsSelectCard">
-            <h3 className="card-heading">👖 Leg Pants</h3>
-            <div className="options-grid scrollable">
-              {legsOptions.map(legsStyle => (
-                <button
-                  key={legsStyle}
-                  className={`option-btn ${minifig.legs === legsStyle ? 'selected' : ''}`}
-                  onClick={() => handleSelect('legs', legsStyle)}
-                >
-                  <LegsPreview type={legsStyle} />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Card 3: Badges Selection */}
-          <div className="lego-card option-card" data-component="BadgesSelectCard">
-            <h3 className="card-heading">⚡ Ability Chips</h3>
-            <div className="options-grid scrollable" style={{ gap: '14px', padding: '6px 0', overflowX: 'visible', justifyContent: 'center' }}>
-              {['speed', 'bulb', 'shield', 'brick'].map(badgeType => (
-                <BadgePreview
-                  key={badgeType}
-                  type={badgeType}
-                  active={minifig.badges.includes(badgeType)}
-                  onClick={() => toggleBadge(badgeType)}
-                />
-              ))}
+          {/* Card 3: Save */}
+          <div className="lego-card option-card save-preview-card" data-component="SavePreviewCard">
+            <h3 className="card-heading">Save & Preview</h3>
+            <div className="save-preview-layout">
+              <button
+                className="save-character-btn"
+                onClick={handleSaveClick}
+              >
+                <span className="save-brick-icon">▰</span>
+                <span>Save Character</span>
+              </button>
+              <div className="preview-thumb park"></div>
+              <div className="preview-thumb street"></div>
             </div>
           </div>
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 // --- Gradients and Styling definitions ---
 // We define SVG gradients inline so they can be referenced inside the paths.
 // To avoid ID collisions between multiple Minifigs, we can use static ids
