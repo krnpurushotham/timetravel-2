@@ -189,8 +189,7 @@ export function playTick() {
     gain.connect(ctx.destination);
     osc.start(now);
     osc.stop(now + 0.015);
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
-

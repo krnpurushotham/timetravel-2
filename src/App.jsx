@@ -1,39 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SunCalc from 'suncalc';
-import { 
-  Sparkles, 
-  Rocket, 
-  Utensils, 
-  Pizza, 
-  Moon, 
-  MapPin, 
-  Flame, 
-  Bath, 
-  BookOpen, 
-  Bed, 
-  Clock, 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  Lock, 
-  Plus, 
-  Trash2, 
-  Shield, 
-  Calendar, 
-  Users, 
-  Eye, 
+import {
+  Sparkles,
+  Rocket,
+  Utensils,
+  Pizza,
+  Moon,
+  MapPin,
+  Flame,
+  Bath,
+  BookOpen,
+  Bed,
+  Clock,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Plus,
+  Pencil,
+  Trash2,
+  Shield,
+  Users,
   HelpCircle,
   LogOut,
-  ChevronRight,
-  Smile,
-  Compass,
   Gift
 } from 'lucide-react';
-import { 
-  playLegoPop, 
-  playSlideWhistle, 
-  playCenteringZip, 
-  playUnlockChime, 
+import {
+  playLegoPop,
+  playSlideWhistle,
+  playCenteringZip,
+  playUnlockChime,
   playErrorBuzz,
   playTick
 } from './utils/audio';
@@ -68,19 +63,48 @@ const DEFAULT_TASKS = [
   { id: '10', title: 'Dreams of Lego Land', icon: 'Bed', startTime: 20.5, duration: 8.0, color: 'purple', status: 'pending', activityType: 'mandatory', frequency: 'daily' }
 ];
 
+const PLACEHOLDER_TASK = {
+  id: 'dummy-placeholder',
+  title: 'Routine Baseplate Setup 🧱',
+  icon: 'Sparkles',
+  startTime: 9.0,
+  duration: 1.0,
+  color: 'yellow',
+  status: 'pending',
+  activityType: 'mandatory',
+  frequency: 'daily'
+};
+
+const ensureTaskList = (taskList) => (
+  Array.isArray(taskList) && taskList.length > 0 ? taskList : [PLACEHOLDER_TASK]
+);
+
+const createId = () => Math.random().toString(36).substring(2, 9);
+
+const getCurrentTimeMs = () => Date.now();
+
+const getAmsterdamTimestamp = () => {
+  const now = new Date();
+  return now.toLocaleTimeString('en-US', { timeZone: 'Europe/Amsterdam', hour12: false }) +
+    ' ' +
+    now.toLocaleDateString('en-US', { timeZone: 'Europe/Amsterdam' });
+};
+
 // Initial profiles
 const DEFAULT_PROFILES = [
   { id: 'liam', name: 'Lego Liam 🚀', age: 4, role: 'child' },
   { id: 'emma', name: 'Space Emma 🛰️', age: 6, role: 'child' }
 ];
 
+const TIMELINE_DAY_OFFSETS = [-3, -2, -1, 0, 1, 2, 3];
+
 // Comic Style Celestial & Backdrop components
 function ComicSun({ style }) {
   return (
-    <svg 
-      viewBox="0 0 100 100" 
-      width="80" 
-      height="80" 
+    <svg
+      viewBox="0 0 100 100"
+      width="80"
+      height="80"
       style={style}
       className="sky-celestial sun-comic"
       data-component="ComicSun"
@@ -108,7 +132,7 @@ function ComicMoon({ phase, style }) {
     const R = 36;
     const cx = 50;
     const cy = 50;
-    
+
     if (p <= 0.03 || p >= 0.97) return "";
     if (p >= 0.47 && p <= 0.53) {
       return `M ${cx} ${cy - R} A ${R} ${R} 0 1 1 ${cx} ${cy + R} A ${R} ${R} 0 1 1 ${cx} ${cy - R}`;
@@ -116,14 +140,14 @@ function ComicMoon({ phase, style }) {
 
     const isWaxing = p < 0.5;
     let k = isWaxing ? (p * 4 - 1) : ((1 - p) * 4 - 1);
-    
+
     const rx = Math.abs(k) * R;
     const sweep1 = isWaxing ? 1 : 0;
     const sweep2 = (k < 0) ? (isWaxing ? 0 : 1) : (isWaxing ? 1 : 0);
-    
+
     const startY = cy - R;
     const endY = cy + R;
-    
+
     return `
       M ${cx} ${startY}
       A ${R} ${R} 0 0 ${sweep1} ${cx} ${endY}
@@ -135,10 +159,10 @@ function ComicMoon({ phase, style }) {
   const maskPath = getMoonMaskPath(phase);
 
   return (
-    <svg 
-      viewBox="0 0 100 100" 
-      width="80" 
-      height="80" 
+    <svg
+      viewBox="0 0 100 100"
+      width="80"
+      height="80"
       style={style}
       className="sky-celestial moon-comic"
       data-component="ComicMoon"
@@ -167,23 +191,23 @@ function ComicMoon({ phase, style }) {
 
 function ComicCloud({ style }) {
   return (
-    <svg 
-      viewBox="0 0 120 70" 
-      width="120" 
-      height="70" 
+    <svg
+      viewBox="0 0 120 70"
+      width="120"
+      height="70"
       style={style}
       className="comic-cloud-svg"
       data-component="ComicCloud"
     >
-      <path 
-        d="M 25 50 
-           A 20 20 0 0 1 35 15 
-           A 25 25 0 0 1 80 15 
-           A 20 20 0 0 1 95 50 
-           Z" 
-        fill="var(--lego-white)" 
-        stroke="var(--lego-black)" 
-        strokeWidth="3.5" 
+      <path
+        d="M 25 50
+           A 20 20 0 0 1 35 15
+           A 25 25 0 0 1 80 15
+           A 20 20 0 0 1 95 50
+           Z"
+        fill="var(--lego-white)"
+        stroke="var(--lego-black)"
+        strokeWidth="3.5"
         strokeLinejoin="round"
       />
       <rect x="25" y="32" width="70" height="18" fill="var(--lego-white)" />
@@ -203,7 +227,7 @@ function ComicBackdrop() {
         <rect x="42" y="55" width="8" height="12" fill="#fff9db" stroke="var(--lego-black)" strokeWidth="2.5" rx="2" />
         <rect x="30" y="75" width="8" height="12" fill="#fff9db" stroke="var(--lego-black)" strokeWidth="2.5" rx="2" />
         <rect x="42" y="75" width="8" height="12" fill="#fff9db" stroke="var(--lego-black)" strokeWidth="2.5" rx="2" />
-        
+
         {/* Building 2 (Pastel Blue) */}
         <rect x="75" y="15" width="60" height="105" fill="#c7ecee" stroke="var(--lego-black)" strokeWidth="3.5" rx="4" />
         <rect x="90" y="30" width="10" height="15" fill="#fff9db" stroke="var(--lego-black)" strokeWidth="2.5" rx="2" />
@@ -221,55 +245,55 @@ function ComicBackdrop() {
       {/* Right Landscape: Soft Pastel Mountain and Sea */}
       <svg className="comic-backdrop-svg right" width="400" height="120" viewBox="0 0 400 120">
         {/* Mountain peak */}
-        <polygon 
-          points="150,120 280,30 380,120" 
-          fill="#81ecec" 
-          stroke="var(--lego-black)" 
-          strokeWidth="3.5" 
-          strokeLinejoin="round" 
+        <polygon
+          points="150,120 280,30 380,120"
+          fill="#81ecec"
+          stroke="var(--lego-black)"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
         />
         {/* Snow Peak Cap */}
-        <polygon 
-          points="260,44 280,30 300,44 290,52 280,46 270,52" 
-          fill="#ffffff" 
-          stroke="var(--lego-black)" 
-          strokeWidth="3.5" 
-          strokeLinejoin="round" 
+        <polygon
+          points="260,44 280,30 300,44 290,52 280,46 270,52"
+          fill="#ffffff"
+          stroke="var(--lego-black)"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
         />
 
         {/* Smaller Mountain (Pastel Green) */}
-        <polygon 
-          points="60,120 160,50 260,120" 
-          fill="#b2bec3" 
-          stroke="var(--lego-black)" 
-          strokeWidth="3.5" 
-          strokeLinejoin="round" 
+        <polygon
+          points="60,120 160,50 260,120"
+          fill="#b2bec3"
+          stroke="var(--lego-black)"
+          strokeWidth="3.5"
+          strokeLinejoin="round"
         />
 
         {/* Sea Waves (Pastel Blue) at bottom right */}
-        <path 
-          d="M 0,110 
-             Q 20,105 40,110 
-             Q 60,115 80,110 
-             Q 100,105 120,110 
-             Q 140,115 160,110 
-             Q 180,105 200,110 
-             L 200,120 L 0,120 Z" 
-          fill="#74b9ff" 
-          stroke="var(--lego-black)" 
-          strokeWidth="3.5" 
+        <path
+          d="M 0,110
+             Q 20,105 40,110
+             Q 60,115 80,110
+             Q 100,105 120,110
+             Q 140,115 160,110
+             Q 180,105 200,110
+             L 200,120 L 0,120 Z"
+          fill="#74b9ff"
+          stroke="var(--lego-black)"
+          strokeWidth="3.5"
         />
-        <path 
-          d="M 180,112 
-             Q 200,107 220,112 
-             Q 240,117 260,112 
-             Q 280,107 300,112 
-             Q 320,117 340,112 
-             Q 360,107 380,112 
-             L 380,120 L 180,120 Z" 
-          fill="#0984e3" 
-          stroke="var(--lego-black)" 
-          strokeWidth="3.5" 
+        <path
+          d="M 180,112
+             Q 200,107 220,112
+             Q 240,117 260,112
+             Q 280,107 300,112
+             Q 320,117 340,112
+             Q 360,107 380,112
+             L 380,120 L 180,120 Z"
+          fill="#0984e3"
+          stroke="var(--lego-black)"
+          strokeWidth="3.5"
         />
       </svg>
     </div>
@@ -309,17 +333,17 @@ const getDayOfYear = (date = new Date()) => {
     const parts = formatter.formatToParts(date);
     const map = {};
     parts.forEach(p => { map[p.type] = p.value; });
-    
+
     const year = parseInt(map.year, 10);
     const month = parseInt(map.month, 10) - 1;
     const day = parseInt(map.day, 10);
-    
+
     const start = new Date(year, 0, 1);
     const current = new Date(year, month, day);
     const diff = current - start;
     const oneDay = 1000 * 60 * 60 * 24;
     return Math.floor(diff / oneDay) + 1;
-  } catch (e) {
+  } catch {
     const start = new Date(date.getFullYear(), 0, 1);
     const diff = date - start;
     const oneDay = 1000 * 60 * 60 * 24;
@@ -370,8 +394,8 @@ const getMoonTimes = (date = new Date()) => {
   const times = SunCalc.getMoonTimes(date, 52.3676, 4.9041);
   const rise = times.rise ? getAmsterdamDecimalHour(times.rise) : null;
   const set = times.set ? getAmsterdamDecimalHour(times.set) : null;
-  return { 
-    rise, 
+  return {
+    rise,
     set,
     alwaysUp: times.alwaysUp || false,
     alwaysDown: times.alwaysDown || false
@@ -403,7 +427,7 @@ function App() {
       const map = {};
       parts.forEach(p => { map[p.type] = p.value; });
       return `${map.year}-${map.month}-${map.day}`;
-    } catch (e) {
+    } catch {
       const y = date.getFullYear();
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
@@ -417,7 +441,9 @@ function App() {
       if (saved) {
         return JSON.parse(saved);
       }
-    } catch (e) {}
+    } catch {
+      // Ignore malformed saved templates and fall back to defaults.
+    }
     return DEFAULT_TASKS.map(t => ({ ...t, frequency: t.frequency === 'one-off' ? 'daily' : t.frequency }));
   });
 
@@ -425,7 +451,7 @@ function App() {
     try {
       const saved = localStorage.getItem('lego_daily_tasks_map');
       return saved ? JSON.parse(saved) : {};
-    } catch (e) {
+    } catch {
       return {};
     }
   });
@@ -445,9 +471,11 @@ function App() {
       const savedMap = localStorage.getItem('lego_daily_tasks_map');
       if (savedMap) {
         const parsed = JSON.parse(savedMap);
-        if (parsed[todayKey]) return parsed[todayKey];
+        if (parsed[todayKey]) return ensureTaskList(parsed[todayKey]);
       }
-    } catch (e) {}
+    } catch {
+      // Ignore malformed saved daily tasks and fall back to templates.
+    }
 
     let templates = DEFAULT_TASKS.map(t => ({ ...t, frequency: t.frequency === 'one-off' ? 'daily' : t.frequency }));
     try {
@@ -455,8 +483,10 @@ function App() {
       if (savedTemplates) {
         templates = JSON.parse(savedTemplates);
       }
-    } catch (e) {}
-    return templates.map(t => ({ ...t, status: 'pending' }));
+    } catch {
+      // Ignore malformed saved templates and fall back to defaults.
+    }
+    return ensureTaskList(templates.map(t => ({ ...t, status: 'pending' })));
   });
 
   const [selectedTaskId, setSelectedTaskId] = useState(null);
@@ -482,7 +512,7 @@ function App() {
         return saved;
       }
       return 'liam';
-    } catch (e) {
+    } catch {
       return 'liam';
     }
   });
@@ -491,7 +521,7 @@ function App() {
     try {
       const saved = localStorage.getItem('lego_logs');
       return saved ? JSON.parse(saved) : [];
-    } catch (e) {
+    } catch {
       return [];
     }
   });
@@ -536,7 +566,6 @@ function App() {
   // Interactivity / Gestures
   const [particles, setParticles] = useState([]);
   const [draggedTask, setDraggedTask] = useState(null); // { id, startY, currentY }
-  const [ambientItems, setAmbientItems] = useState([]); // floats mood particles in background
   const [cadetAction, setCadetAction] = useState(null); // 'shake' | 'cheer' | null
   const [hoveredComponent, setHoveredComponent] = useState(null); // { name, x, y }
   const hoverTimerRef = useRef(null);
@@ -547,7 +576,7 @@ function App() {
   const [pinInput, setPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
   const [parentModeActive, setParentModeActive] = useState(false);
-  
+
   // Parent Admin Tab
   const [parentTab, setParentTab] = useState('tasks');
 
@@ -555,10 +584,11 @@ function App() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskIcon, setNewTaskIcon] = useState('Sparkles');
   const [newTaskStart, setNewTaskStart] = useState('09:00');
-  const [newTaskDuration, setNewTaskDuration] = useState('1.0');
+  const [newTaskDuration, setNewTaskDuration] = useState('60');
   const [newTaskColor, setNewTaskColor] = useState('yellow');
   const [newTaskType, setNewTaskType] = useState('mandatory'); // mandatory, optional, surprise
   const [newTaskFreq, setNewTaskFreq] = useState('daily'); // daily, weekly, one-off
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [newProfileName, setNewProfileName] = useState('');
   const [newProfileAge, setNewProfileAge] = useState('4');
 
@@ -581,6 +611,9 @@ function App() {
   const isDraggingJoystick = useRef(false);
   const initialTasksRef = useRef([]);
   const lastBuzzTimeRef = useRef(0);
+  const draggedTaskRef = useRef(null);
+  const handleTaskDragMoveRef = useRef(null);
+  const handleTaskDragEndRef = useRef(null);
 
 
   // Sync to localStorage
@@ -605,26 +638,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('lego_routine_templates', JSON.stringify(routineTemplates));
   }, [routineTemplates]);
-
-
-  // Ensure dummy task if tasks is empty
-  useEffect(() => {
-    if (tasks.length === 0) {
-      setTasks([
-        {
-          id: 'dummy-placeholder',
-          title: 'Routine Baseplate Setup 🧱',
-          icon: 'Sparkles',
-          startTime: 9.0,
-          duration: 1.0,
-          color: 'yellow',
-          status: 'pending',
-          activityType: 'mandatory',
-          frequency: 'daily'
-        }
-      ]);
-    }
-  }, [tasks]);
 
   useEffect(() => {
     localStorage.setItem('lego_profiles', JSON.stringify(profiles));
@@ -663,15 +676,15 @@ function App() {
   useEffect(() => {
     const handleMouseMove = (e) => {
       const element = e.target.closest('[data-component]');
-      
+
       // Always clear timer on mouse move to ensure we only trigger when mouse stays STILL
       if (hoverTimerRef.current) {
         clearTimeout(hoverTimerRef.current);
       }
-      
+
       if (element) {
         const componentName = element.getAttribute('data-component');
-        
+
         // Hide the current popup while moving to prevent lag/jitter
         setHoveredComponent(null);
 
@@ -694,23 +707,14 @@ function App() {
     };
   }, []);
 
-  // Generate background ambient particles on mood changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      spawnMoodAmbientItem();
-    }, moodY > 60 ? 300 : moodY > 30 ? 800 : 2500); // Higher frequency for higher energy
-
-    return () => clearInterval(interval);
-  }, [moodX, moodY]);
-
   // Helper: log events
   const addLog = (taskTitle, action, details = '') => {
     const active = profiles.find(p => p.id === activeProfile);
     const logName = parentModeActive ? 'Parent' : (active ? active.name : 'Unknown');
     const role = parentModeActive ? 'parent' : 'child';
     const newEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      timestamp: new Date().toLocaleTimeString('en-US', { timeZone: 'Europe/Amsterdam', hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { timeZone: 'Europe/Amsterdam' }),
+      id: createId(),
+      timestamp: getAmsterdamTimestamp(),
       user: logName,
       role: role,
       taskTitle: taskTitle,
@@ -724,7 +728,7 @@ function App() {
   const spawnExplosionParticles = (x, y, color) => {
     const startX = x || window.innerWidth / 2;
     const startY = y || window.innerHeight / 2;
-    
+
     const colorMap = {
       red: 'var(--lego-red)',
       blue: 'var(--lego-blue)',
@@ -766,11 +770,6 @@ function App() {
     }, 600);
   };
 
-  // Ambient mood particles (emojis floating upward in the sky area)
-  const spawnMoodAmbientItem = () => {
-    // Animations disabled for now
-  };
-
   // --- Mood Interpolation Math ---
   const getEmotionByX = (x) => {
     if (x <= 16) return 'Sad';
@@ -791,12 +790,6 @@ function App() {
       Naughty: '😜'
     };
     return emojis[emotion] || '😊';
-  };
-
-  const getEnergyByY = (y) => {
-    if (y <= 3) return 'Low Energy 💤';
-    if (y <= 7) return 'Calm Energy 🔋';
-    return 'High Energy ⚡';
   };
 
   const handleJoystickMove = (clientX, clientY) => {
@@ -870,12 +863,12 @@ function App() {
 
     setDailyTasksMap(prev => {
       const updated = { ...prev, [prevKey]: tasks };
-      
+
       let nextTasks = updated[nextKey];
       if (!nextTasks) {
         nextTasks = routineTemplates.map(t => ({ ...t, status: 'pending' }));
       }
-      setTasks(nextTasks);
+      setTasks(ensureTaskList(nextTasks));
       return updated;
     });
 
@@ -888,21 +881,21 @@ function App() {
     const rect = viewportRef.current.getBoundingClientRect();
     const relativeX = clientX - rect.left;
     const hour = timelineCenterHour + ((relativeX - viewportWidth / 2) / viewportWidth) * zoomLevel;
-    
+
     // Snap to 5-minute increments (1/12 hour)
     let snappedHour = Math.round(hour * 12) / 12;
     snappedHour = Math.max(0, Math.min(24, snappedHour));
-    
+
     const hours = Math.floor(snappedHour);
     const minutes = Math.round((snappedHour - hours) * 60);
     const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-    
+
     setNewTaskStart(formattedTime);
     setParentModeActive(true);
     setParentPanelOpen(true);
     setParentTab('tasks');
     playLegoPop();
-    
+
     if (longPressTimeoutRef.current) {
       clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
@@ -934,7 +927,7 @@ function App() {
     if (longPressTimeoutRef.current) {
       clearTimeout(longPressTimeoutRef.current);
     }
-    
+
     longPressStartPosRef.current = { x: clientX, y: clientY };
     longPressTimeoutRef.current = setTimeout(() => {
       handleTimelineLongPress(clientX);
@@ -1007,7 +1000,7 @@ function App() {
       clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
     }
-    
+
     const dragInfo = dragStartRef.current;
     dragStartRef.current = null;
     setIsWalking(false);
@@ -1030,7 +1023,7 @@ function App() {
 
         setTimelineCenterHour(prev => {
           let newCenter = prev + deltaHours;
-          
+
           let nextDate = new Date(currentDateRef.current);
           let dateChanged = false;
           while (newCenter >= 24) {
@@ -1123,10 +1116,10 @@ function App() {
     if (!draggedTask) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
+
     const dx = clientX - draggedTask.startX;
     const dy = clientY - draggedTask.startY;
-    
+
     let mode = draggedTask.dragMode;
     if (mode === null) {
       if (Math.abs(dx) > 10) {
@@ -1178,7 +1171,7 @@ function App() {
               shouldSnapBackVal = true;
             }
 
-            const nowTime = Date.now();
+            const nowTime = getCurrentTimeMs();
             if (nowTime - lastBuzzTimeRef.current > 1000) {
               lastBuzzTimeRef.current = nowTime;
               playErrorBuzz();
@@ -1235,7 +1228,7 @@ function App() {
         // Find nearest subsequent mandatory task
         const draggedTaskObj = initialTasksRef.current.find(t => t.id === draggedTask.id);
         if (draggedTaskObj) {
-          const subsequentMandatoryTasks = initialTasksRef.current.filter(t => 
+          const subsequentMandatoryTasks = initialTasksRef.current.filter(t =>
             t.activityType === 'mandatory' && t.startTime >= draggedTaskObj.startTime + draggedTaskObj.duration
           );
 
@@ -1250,7 +1243,7 @@ function App() {
             if (hoursShift > maxDurationShift + 0.25) {
               shouldSnapBackVal = true;
             }
-            const nowTime = Date.now();
+            const nowTime = getCurrentTimeMs();
             if (nowTime - lastBuzzTimeRef.current > 1000) {
               lastBuzzTimeRef.current = nowTime;
               playErrorBuzz();
@@ -1276,7 +1269,7 @@ function App() {
         newDuration = Math.round(newDuration * 12) / 12;
         const minDuration = 1 / 12;
         if (newDuration < minDuration) newDuration = minDuration;
-        if (newDuration > 24) newDuration = 24;
+        if (newDuration > 168) newDuration = 168;
 
         setTasks(prev => prev.map(t => {
           if (t.id === draggedTask.id) {
@@ -1401,17 +1394,23 @@ function App() {
     setDraggedTask(null);
   };
 
+  useEffect(() => {
+    draggedTaskRef.current = draggedTask;
+    handleTaskDragMoveRef.current = handleTaskDragMove;
+    handleTaskDragEndRef.current = handleTaskDragEnd;
+  });
+
   // Bind global mouse/touch handlers during active card drags
   useEffect(() => {
     const handleGlobalMove = (e) => {
-      if (draggedTask) {
-        handleTaskDragMove(e);
+      if (draggedTaskRef.current && handleTaskDragMoveRef.current) {
+        handleTaskDragMoveRef.current(e);
       }
     };
 
     const handleGlobalEnd = () => {
-      if (draggedTask) {
-        handleTaskDragEnd();
+      if (draggedTaskRef.current && handleTaskDragEndRef.current) {
+        handleTaskDragEndRef.current();
       }
     };
 
@@ -1426,14 +1425,14 @@ function App() {
       window.removeEventListener('touchmove', handleGlobalMove);
       window.removeEventListener('touchend', handleGlobalEnd);
     };
-  }, [draggedTask, tasks, zoomLevel, viewportWidth]);
+  }, []);
 
   const handleTaskTap = (e, task) => {
     e.stopPropagation();
-    
+
     // Always select the tapped task!
     setSelectedTaskId(task.id);
-    
+
     // If it's a surprise/mystery task and not yet revealed, click reveals it!
     if (task.activityType === 'surprise' && !revealedSurpriseIds.includes(task.id)) {
       playLegoPop();
@@ -1444,7 +1443,7 @@ function App() {
       return;
     }
 
-    const now = Date.now();
+    const now = getCurrentTimeMs();
     const lastTap = lastTapRef.current[task.id] || 0;
 
     if (now - lastTap < 300) {
@@ -1495,7 +1494,7 @@ function App() {
     setTimelineCenterHour(prev => {
       const offset = direction === 'left' ? -1 : 1;
       let target = prev + offset;
-      
+
       let nextDate = new Date(currentDateRef.current);
       let dateChanged = false;
       if (target >= 24) {
@@ -1522,6 +1521,24 @@ function App() {
     return `${pad(h)}:${pad(m)}`;
   };
 
+  const decimalHourToTimeInput = (hour) => {
+    const totalMinutes = Math.round((hour % 24) * 60);
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
+  const resetTaskForm = () => {
+    setEditingTaskId(null);
+    setNewTaskTitle('');
+    setNewTaskIcon('Sparkles');
+    setNewTaskStart('09:00');
+    setNewTaskDuration('60');
+    setNewTaskColor('yellow');
+    setNewTaskType('mandatory');
+    setNewTaskFreq('daily');
+  };
+
   // --- Parent Mode Settings Panel ---
   const handleParentSettingsClick = () => {
     if (parentModeActive) {
@@ -1543,7 +1560,7 @@ function App() {
     } else {
       const nextInput = pinInput + val;
       setPinInput(nextInput);
-      
+
       if (nextInput === '1234') {
         playUnlockChime();
         setParentModeActive(true);
@@ -1573,19 +1590,63 @@ function App() {
 
     const [hours, minutes] = newTaskStart.split(':').map(Number);
     const startHour = hours + minutes / 60;
-    const duration = parseFloat(newTaskDuration);
+    const durationMinutes = parseInt(newTaskDuration, 10);
+    if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) return;
+    const duration = durationMinutes / 60;
+    const existingTask = editingTaskId ? tasks.find(t => t.id === editingTaskId) : null;
 
     const newTask = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: editingTaskId || createId(),
       title: newTaskTitle,
       icon: newTaskIcon,
       startTime: startHour,
       duration: duration,
       color: newTaskColor,
-      status: 'pending',
+      status: existingTask?.status || 'pending',
       activityType: newTaskType,
       frequency: newTaskFreq
     };
+
+    if (editingTaskId) {
+      const applyEdit = (taskList) => ensureTaskList(taskList.map(task => (
+        task.id === editingTaskId ? { ...task, ...newTask } : task
+      ))).sort((a, b) => a.startTime - b.startTime);
+
+      setSeriesModal({
+        title: "Update Routine",
+        message: `Do you want to update "${newTaskTitle}" for all days in the series, or only today?`,
+        onConfirmEvent: () => {
+          setTasks(prev => applyEdit(prev));
+          setSelectedTaskId(editingTaskId);
+          addLog(newTaskTitle, 'updated for today only');
+          resetTaskForm();
+          setSeriesModal(null);
+        },
+        onConfirmSeries: () => {
+          setRoutineTemplates(prev => {
+            const hasTemplate = prev.some(task => task.id === editingTaskId);
+            const next = hasTemplate ? applyEdit(prev) : [...prev, newTask].sort((a, b) => a.startTime - b.startTime);
+            return ensureTaskList(next);
+          });
+          setTasks(prev => applyEdit(prev));
+          setDailyTasksMap(prev => {
+            const updated = { ...prev };
+            Object.keys(updated).forEach(dateStr => {
+              updated[dateStr] = applyEdit(updated[dateStr]);
+            });
+            return updated;
+          });
+          setSelectedTaskId(editingTaskId);
+          addLog(newTaskTitle, 'updated in series');
+          resetTaskForm();
+          setSeriesModal(null);
+        },
+        onCancel: () => {
+          setSeriesModal(null);
+        }
+      });
+      return;
+    }
 
     setSeriesModal({
       title: "Add Routine",
@@ -1596,7 +1657,7 @@ function App() {
           return updated.sort((a, b) => a.startTime - b.startTime);
         });
         addLog(newTaskTitle, `added for today only`);
-        setNewTaskTitle('');
+        resetTaskForm();
         setSeriesModal(null);
       },
       onConfirmSeries: () => {
@@ -1613,7 +1674,7 @@ function App() {
           return updated;
         });
         addLog(newTaskTitle, `added to series`);
-        setNewTaskTitle('');
+        resetTaskForm();
         setSeriesModal(null);
       },
       onCancel: () => {
@@ -1622,27 +1683,48 @@ function App() {
     });
   };
 
+  const handleEditTask = (task) => {
+    setEditingTaskId(task.id);
+    setSelectedTaskId(task.id);
+    setNewTaskTitle(task.title);
+    setNewTaskIcon(task.icon);
+    setNewTaskStart(decimalHourToTimeInput(task.startTime));
+    setNewTaskDuration(String(Math.round(task.duration * 60)));
+    setNewTaskColor(task.color);
+    setNewTaskType(task.activityType);
+    setNewTaskFreq(task.frequency);
+    setParentTab('tasks');
+    playLegoPop();
+  };
+
+  const handleCancelEditTask = () => {
+    resetTaskForm();
+    playSlideWhistle();
+  };
+
   const handleDeleteTask = (id, title) => {
     setSeriesModal({
       title: "Delete Routine",
       message: `Do you want to delete "${title}" from all days in the series, or for today only?`,
       onConfirmEvent: () => {
-        setTasks(prev => prev.filter(t => t.id !== id));
+        setTasks(prev => ensureTaskList(prev.filter(t => t.id !== id)));
         setSelectedTaskId(null);
+        if (editingTaskId === id) resetTaskForm();
         addLog(title, 'deleted for today only');
         setSeriesModal(null);
       },
       onConfirmSeries: () => {
-        setRoutineTemplates(prev => prev.filter(t => t.id !== id));
-        setTasks(prev => prev.filter(t => t.id !== id));
+        setRoutineTemplates(prev => ensureTaskList(prev.filter(t => t.id !== id)));
+        setTasks(prev => ensureTaskList(prev.filter(t => t.id !== id)));
         setDailyTasksMap(prev => {
           const updated = { ...prev };
           Object.keys(updated).forEach(dateStr => {
-            updated[dateStr] = updated[dateStr].filter(t => t.id !== id);
+            updated[dateStr] = ensureTaskList(updated[dateStr].filter(t => t.id !== id));
           });
           return updated;
         });
         setSelectedTaskId(null);
+        if (editingTaskId === id) resetTaskForm();
         addLog(title, 'deleted from series');
         setSeriesModal(null);
       },
@@ -1729,51 +1811,6 @@ function App() {
     }));
   };
 
-  // --- Activity-Specific Characters and Backdrop Calculations ---
-  // Find task active at current systemHour
-  const activeTask = tasks.find(t => systemHour >= t.startTime && systemHour < (t.startTime + t.duration));
-  
-  // Set character image and background build based on the active task
-  let activeCharImg = '/lego_guide.png'; // Fallback Space Astronaut
-  let activeBuildTitle = 'Time Patrol Space Base';
-  let hasPreGeneratedBackdrop = false;
-  let customBackdropType = 'space'; // space, teeth, meals, sleep, playground
-
-  if (activeTask) {
-    const titleLower = activeTask.title.toLowerCase();
-    
-    // Check for core preloaded activities
-    if (titleLower.includes('breakfast') || titleLower.includes('lunch') || titleLower.includes('dinner') || titleLower.includes('pizza') || titleLower.includes('waffle')) {
-      activeCharImg = '/lego_chef.png';
-      activeBuildTitle = 'Lego Waffle Diner Build';
-      customBackdropType = 'meals';
-      hasPreGeneratedBackdrop = true;
-    } else if (titleLower.includes('teeth') || titleLower.includes('brush') || titleLower.includes('dinosaur')) {
-      activeCharImg = '/lego_dino.png';
-      activeBuildTitle = 'Brushing Dino Build';
-      customBackdropType = 'teeth';
-      hasPreGeneratedBackdrop = true;
-    } else if (titleLower.includes('sleep') || titleLower.includes('dreams') || titleLower.includes('nap')) {
-      activeCharImg = ''; // No character image, uses sleeping emojis/Zzz builds
-      activeBuildTitle = 'Starry Dreams Build';
-      customBackdropType = 'sleep';
-      hasPreGeneratedBackdrop = true;
-    } else if (titleLower.includes('playground') || titleLower.includes('park') || titleLower.includes('outdoor')) {
-      activeCharImg = '/lego_guide.png';
-      activeBuildTitle = 'Park Playground Build';
-      customBackdropType = 'playground';
-      hasPreGeneratedBackdrop = true;
-    } else if (titleLower.includes('spaceship') || titleLower.includes('build')) {
-      activeCharImg = '/lego_guide.png';
-      activeBuildTitle = 'Star Patrol Rocket Build';
-      customBackdropType = 'space';
-      hasPreGeneratedBackdrop = true;
-    } else {
-      activeBuildTitle = `Lego "${activeTask.title}" Build`;
-      customBackdropType = 'generic';
-    }
-  }
-
   // Dynamic Netherlands Astronomical Calculations
   const systemDate = new Date();
   const doy = getDayOfYear(systemDate);
@@ -1781,16 +1818,13 @@ function App() {
   const { rise: moonRise, set: moonSet, alwaysUp: moonAlwaysUp, alwaysDown: moonAlwaysDown } = getMoonTimes(systemDate);
 
   // Determine ambient sky color class dynamically aligned to sunrise/sunset
-  let skyClass = 'sky-day';
-  if (timelineCenterHour >= sunrise - 1.0 && timelineCenterHour < sunrise + 1.0) {
-    skyClass = 'sky-dawn';
-  } else if (timelineCenterHour >= sunrise + 1.0 && timelineCenterHour < sunset - 1.0) {
-    skyClass = 'sky-day';
-  } else if (timelineCenterHour >= sunset - 1.0 && timelineCenterHour < sunset + 1.0) {
-    skyClass = 'sky-dusk';
-  } else {
-    skyClass = 'sky-night';
-  }
+  const skyClass = timelineCenterHour >= sunrise - 1.0 && timelineCenterHour < sunrise + 1.0
+    ? 'sky-dawn'
+    : timelineCenterHour >= sunrise + 1.0 && timelineCenterHour < sunset - 1.0
+      ? 'sky-day'
+      : timelineCenterHour >= sunset - 1.0 && timelineCenterHour < sunset + 1.0
+        ? 'sky-dusk'
+        : 'sky-night';
 
   // Calculate sun style using exact sunrise/sunset hours
   const isSunVisible = timelineCenterHour >= sunrise && timelineCenterHour < sunset;
@@ -1815,15 +1849,14 @@ function App() {
   const isMoonVisible = isMoonCurrentlyVisible(timelineCenterHour, moonRise, moonSet, moonAlwaysUp, moonAlwaysDown);
   let moonStyle = { display: 'none' };
   if (isMoonVisible) {
-    let moonFraction = 0.5;
-    if (moonRise !== null && moonSet !== null) {
-      const duration = moonRise < moonSet ? (moonSet - moonRise) : (moonSet - moonRise + 24.0) % 24.0;
-      const elapsed = (timelineCenterHour - moonRise + 24.0) % 24.0;
-      moonFraction = duration > 0 ? (elapsed / duration) : 0;
-    } else {
-      // If always visible, map it continuously across the 24 hour range
-      moonFraction = timelineCenterHour / 24.0;
-    }
+    const duration = moonRise !== null && moonSet !== null
+      ? (moonRise < moonSet ? (moonSet - moonRise) : (moonSet - moonRise + 24.0) % 24.0)
+      : null;
+    const elapsed = moonRise !== null ? (timelineCenterHour - moonRise + 24.0) % 24.0 : 0;
+    // If always visible, map it continuously across the 24 hour range.
+    const moonFraction = duration !== null
+      ? (duration > 0 ? (elapsed / duration) : 0)
+      : timelineCenterHour / 24.0;
     const left = moonFraction * 80 + 10;
     const top = 70 - 55 * Math.sin(Math.PI * moonFraction);
     moonStyle = {
@@ -1837,7 +1870,6 @@ function App() {
 
   const moodEmotion = getEmotionByX(moodX);
   const moodEmoji = getEmotionEmoji(moodEmotion);
-  const moodEnergy = getEnergyByY(moodY);
 
   const now = new Date();
   const isToday = currentDate.getFullYear() === now.getFullYear() &&
@@ -1846,6 +1878,31 @@ function App() {
   const formattedTime = now.toLocaleTimeString('en-US', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hour12: false });
   const formattedDate = currentDate.toLocaleDateString('en-US', { timeZone: 'Europe/Amsterdam', weekday: 'short', month: 'short', day: 'numeric' });
   const isNotNow = !isToday || Math.abs(timelineCenterHour - systemHour) > 0.05;
+  const nowX = hourToX(systemHour);
+  const footerNowX = Math.max(36, Math.min(viewportWidth - 36, nowX));
+
+  const getDateWithOffset = (date, offset) => {
+    const shifted = new Date(date);
+    shifted.setDate(shifted.getDate() + offset);
+    return shifted;
+  };
+
+  const visibleTaskEntries = TIMELINE_DAY_OFFSETS.flatMap(dayOffset => {
+    const date = getDateWithOffset(currentDate, dayOffset);
+    const dateKey = getDateKey(date);
+    const sourceTasks = dayOffset === 0
+      ? tasks
+      : (dailyTasksMap[dateKey] || routineTemplates.map(t => ({ ...t, status: 'pending' })));
+
+    return sourceTasks.map(task => ({
+      task,
+      dateKey,
+      dayOffset,
+      isCurrentDay: dayOffset === 0,
+      startHour: task.startTime + dayOffset * 24,
+      endHour: task.startTime + dayOffset * 24 + task.duration
+    }));
+  }).sort((a, b) => a.startHour - b.startHour);
 
   return (
     <>
@@ -1857,13 +1914,13 @@ function App() {
 
         {/* Page Navigation Switcher */}
         <div className="profile-selector" style={{ marginRight: 'auto', marginLeft: '24px' }} data-component="ProfileSelector">
-          <button 
+          <button
             className={`profile-btn ${activePage === 'timeline' ? 'active' : ''}`}
             onClick={() => { setActivePage('timeline'); playLegoPop(); }}
           >
             🚀 Timeline
           </button>
-          <button 
+          <button
             className={`profile-btn ${activePage === 'mood' ? 'active' : ''}`}
             onClick={() => { setActivePage('mood'); playLegoPop(); }}
           >
@@ -1886,7 +1943,7 @@ function App() {
               <span>{p.name}</span>
             </button>
           ))}
-          
+
           <button
             className={`profile-btn ${parentModeActive ? 'active' : ''}`}
             onClick={() => {
@@ -1937,24 +1994,6 @@ function App() {
             </div>
 
             <div className="sky-stars"></div>
-            
-            {/* Twinkling ambient elements from joystick mood controller */}
-            <div className="ambient-particle-flow">
-              {ambientItems.map(item => (
-                <span
-                  key={item.id}
-                  className="mood-floating-item"
-                  style={{
-                    left: item.left,
-                    bottom: '10px',
-                    '--mxd': item.mxd,
-                    '--mrot': item.mrot
-                  }}
-                >
-                  {item.content}
-                </span>
-              ))}
-            </div>
 
             {/* Sun & Moon arcs */}
             <ComicSun style={sunStyle} />
@@ -1972,7 +2011,7 @@ function App() {
           </section>
 
           {/* Daily Timeline */}
-          <section 
+          <section
             className="timeline-viewport"
             data-component="TimelineViewport"
             ref={viewportRef}
@@ -1985,20 +2024,20 @@ function App() {
             onTouchEnd={handleTimelineDragEnd}
           >
             {/* Left & Right 1-Hour Jump Arrows */}
-            <button 
-              className="lego-jump-btn left-jump" 
-              onClick={() => handleJumpHour('left')} 
-              onMouseDown={(e) => e.stopPropagation()} 
-              onTouchStart={(e) => e.stopPropagation()} 
+            <button
+              className="lego-jump-btn left-jump"
+              onClick={() => handleJumpHour('left')}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               title="Jump 1 Hour Back"
             >
               ◀
             </button>
-            <button 
-              className="lego-jump-btn right-jump" 
-              onClick={() => handleJumpHour('right')} 
-              onMouseDown={(e) => e.stopPropagation()} 
-              onTouchStart={(e) => e.stopPropagation()} 
+            <button
+              className="lego-jump-btn right-jump"
+              onClick={() => handleJumpHour('right')}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               title="Jump 1 Hour Forward"
             >
               ▶
@@ -2006,7 +2045,7 @@ function App() {
 
             {/* Viewport Center Pointer */}
             {isNotNow && (
-              <div 
+              <div
                 className="timeline-center-pointer"
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
@@ -2017,19 +2056,20 @@ function App() {
             )}
 
             <div className="timeline-baseplate" style={{ width: '100%', height: '100%' }}>
-              
+
               {/* Task Bricks Area */}
-              <div 
+              <div
                 className="tasks-container"
               >
-                {tasks.map(task => {
-                  const startX = hourToX(task.startTime);
-                  const endX = hourToX(task.startTime + task.duration);
-                  const width = Math.max(endX - startX, 85);
-                  
+                {visibleTaskEntries.map(({ task, dateKey, dayOffset, isCurrentDay, startHour, endHour }) => {
+                  const startX = hourToX(startHour);
+                  const endX = hourToX(endHour);
+                  const zoomAwareMinWidth = Math.max(28, Math.min(85, 42 + (24 - zoomLevel) * 2));
+                  const width = Math.max(endX - startX, zoomAwareMinWidth);
+
                   if (startX + width < 0 || startX > viewportWidth) return null;
 
-                  const isDragged = draggedTask && draggedTask.id === task.id;
+                  const isDragged = isCurrentDay && draggedTask && draggedTask.id === task.id;
                   const dragOffset = isDragged && draggedTask.dragMode === 'vertical' ? Math.max(0, draggedTask.currentY - draggedTask.startY) : 0;
                   const TaskIcon = IconMap[task.icon] || HelpCircle;
 
@@ -2037,11 +2077,11 @@ function App() {
                   const isSurprise = task.activityType === 'surprise';
                   const isRevealed = revealedSurpriseIds.includes(task.id) || task.status !== 'pending' || parentModeActive;
                   const displayTitle = (isSurprise && !isRevealed) ? 'Mystery Box!' : task.title;
-                  const isSelected = task.id === selectedTaskId;
+                  const isSelected = isCurrentDay && task.id === selectedTaskId;
 
                   return (
                     <div
-                      key={task.id}
+                      key={`${dateKey}-${task.id}-${dayOffset}`}
                       className={`task-brick ${task.color} ${task.status} ${isSurprise && !isRevealed ? 'mystery' : ''} ${isSelected ? 'selected' : ''}`}
                       data-component="TaskBrick"
                       style={{
@@ -2051,9 +2091,9 @@ function App() {
                         zIndex: isDragged ? 10 : 4,
                         boxShadow: isDragged ? '0 12px 16px rgba(0,0,0,0.3)' : ''
                       }}
-                      onMouseDown={(e) => handleTaskDragStart(e, task)}
-                      onTouchStart={(e) => handleTaskDragStart(e, task)}
-                      onClick={(e) => handleTaskTap(e, task)}
+                      onMouseDown={(e) => isCurrentDay ? handleTaskDragStart(e, task) : e.stopPropagation()}
+                      onTouchStart={(e) => isCurrentDay ? handleTaskDragStart(e, task) : e.stopPropagation()}
+                      onClick={(e) => isCurrentDay ? handleTaskTap(e, task) : e.stopPropagation()}
                     >
                       <div className="lego-brick-studs">
                         <span></span>
@@ -2071,16 +2111,15 @@ function App() {
                             <TaskIcon size={24} />
                           )}
                         </div>
-                        
+
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, justifyContent: 'center', textAlign: 'left' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '4px' }}>
                             <span className="task-brick-title" style={{ fontSize: '0.85rem', marginBottom: 0 }}>{displayTitle}</span>
                             <span className="task-brick-time" style={{ fontSize: '0.7rem', padding: '1px 4px', flex: 'none' }}>
-                              {Math.floor(task.startTime)}:
-                              {String(Math.round((task.startTime % 1) * 60)).padStart(2, '0')}
+                              {decimalHourToTimeInput(task.startTime)}
                             </span>
                           </div>
-                          
+
                           <div className="task-brick-instruction" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem', padding: 0, background: 'transparent', color: 'rgba(255,255,255,0.85)', textShadow: 'none', border: 'none', marginTop: '2px', width: '100%' }}>
                             <span>
                               {task.status === 'completed' && '🏆 Completed'}
@@ -2089,7 +2128,7 @@ function App() {
                                 (isSurprise && !isRevealed) ? 'Tap to reveal' : 'Double-tap to snap'
                               )}
                             </span>
-                            
+
                             <span style={{ fontSize: '0.65rem' }}>
                               {task.frequency === 'daily' && '🔁'}
                               {task.frequency === 'weekly' && '📅'}
@@ -2100,8 +2139,8 @@ function App() {
                       </div>
 
                       {/* Resize stud handle */}
-                      {isSelected && (
-                        <div 
+                      {isCurrentDay && isSelected && (
+                        <div
                           className="resize-handle-stud"
                           onMouseDown={(e) => handleResizeStart(e, task)}
                           onTouchStart={(e) => handleResizeStart(e, task)}
@@ -2123,50 +2162,41 @@ function App() {
                 </div>
 
                 <div className="timeline-ticks">
-                  {Array.from({ length: 49 }).map((_, i) => {
-                    const hour = i * 0.5;
-                    const x = hourToX(hour);
-                    const isWholeHour = hour % 1 === 0;
+                  {[-1, 0, 1].flatMap(dayOffset => (
+                    Array.from({ length: 48 }).map((_, i) => {
+                      const localHour = i * 0.5;
+                      const hour = dayOffset * 24 + localHour;
+                      const x = hourToX(hour);
+                      const isWholeHour = localHour % 1 === 0;
 
-                    if (x < 0 || x > viewportWidth) return null;
+                      if (x < 0 || x > viewportWidth) return null;
 
-                    return (
-                      <React.Fragment key={hour}>
-                        <div 
-                          className="timeline-tick"
-                          style={{ 
-                            left: `${x}px`,
-                            height: isWholeHour ? '14px' : '8px',
-                            backgroundColor: isWholeHour ? 'var(--lego-black)' : 'rgba(255,255,255,0.4)'
-                          }}
-                        ></div>
-                        {isWholeHour && (
-                          <div className="timeline-hour-label" style={{ left: `${x}px` }}>
-                            {hour === 0 ? 'Midnight' : hour === 12 ? 'Noon' : `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? 'pm' : 'am'}`}
-                          </div>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                  {isToday && systemHour >= 0 && systemHour <= 24 && (
-                    <div 
-                      className="now-indicator-bottom"
-                      style={{
-                        left: `${hourToX(systemHour)}px`,
-                        position: 'absolute',
-                        top: '0px',
-                        bottom: '0px',
-                        width: '6px',
-                        backgroundColor: 'var(--lego-red)',
-                        border: '2px solid var(--lego-black)',
-                        zIndex: 20,
-                        borderRadius: '3px',
-                        pointerEvents: 'none',
-                        transform: 'translateX(-50%)',
-                        boxShadow: '0 0 6px var(--lego-red)'
-                      }}
-                    />
-                  )}
+                      return (
+                        <React.Fragment key={`${dayOffset}-${localHour}`}>
+                          <div
+                            className="timeline-tick"
+                            style={{
+                              left: `${x}px`,
+                              height: isWholeHour ? '14px' : '8px',
+                              backgroundColor: isWholeHour ? 'var(--lego-black)' : 'rgba(255,255,255,0.4)'
+                            }}
+                          ></div>
+                          {isWholeHour && (
+                            <div className="timeline-hour-label" style={{ left: `${x}px` }}>
+                              {localHour === 0 ? 'Midnight' : localHour === 12 ? 'Noon' : `${localHour > 12 ? localHour - 12 : localHour}${localHour >= 12 ? 'pm' : 'am'}`}
+                            </div>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
+                  ))}
+                  <div
+                    className="now-footer-indicator"
+                    style={{ left: `${footerNowX}px` }}
+                  >
+                    <span className="now-footer-line"></span>
+                    <span className="now-footer-time">{formattedTime}</span>
+                  </div>
                 </div>
               </div>
 
@@ -2174,25 +2204,23 @@ function App() {
               {isToday && systemHour >= 0 && systemHour <= 24 && (
                 <>
                   {/* Walking Lego Figure at NOW */}
-                  <div 
-                    className={`now-character ${isWalking ? 'walking' : ''} ${cadetAction ? cadetAction : ''}`}
-                    data-component="LegoCadetMarker"
-                    style={{ left: `${hourToX(systemHour)}px` }}
+	                  <div
+	                    className={`now-character ${isWalking ? 'walking' : ''} ${cadetAction ? cadetAction : ''}`}
+	                    data-component="LegoCadetMarker"
+	                    style={{ left: `${nowX}px` }}
                     title="Lego Cadet Marker"
-                    onClick={() => {
-                      playLegoPop();
-                      spawnExplosionParticles(hourToX(systemHour), window.innerHeight - 150, 'yellow');
-                    }}
-                  >
-                    <div className="now-character-head">
-                      {moodEmoji}
-                    </div>
-                    <div className={`now-character-torso ${activeTask ? activeTask.color : 'blue'}`}></div>
-                    <div className="now-character-legs">
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
+	                    onClick={() => {
+	                      playLegoPop();
+	                      spawnExplosionParticles(nowX, window.innerHeight - 150, 'yellow');
+	                    }}
+	                  >
+	                    <img
+	                      className="now-character-img"
+	                      src="/lego_cadet_realistic.png"
+	                      alt="Lego Time Patrol Cadet"
+	                      draggable="false"
+	                    />
+	                  </div>
 
 
                 </>
@@ -2219,7 +2247,7 @@ function App() {
               </div>
 
               {/* Color Split Trackpad */}
-              <div 
+              <div
                 className="mood-trackpad-large"
                 data-component="MoodJoystickTrackpad"
                 ref={joystickRef}
@@ -2244,7 +2272,7 @@ function App() {
                 ))}
 
                 {/* Draggable Active Knob */}
-                <div 
+                <div
                   className="mood-knob"
                   data-component="MoodJoystickHandle"
                   style={{
@@ -2261,7 +2289,7 @@ function App() {
               Mood: <strong style={{ color: 'var(--lego-blue-dark)' }}>{moodEmotion}</strong> & <strong style={{ color: 'var(--lego-red)' }}>Energy: {moodY}/10</strong>
             </div>
 
-            <button 
+            <button
               className="lego-button green"
               style={{ width: '100%', padding: '12px', fontSize: '1.2rem', justifyContent: 'center' }}
               onClick={() => { setActivePage('timeline'); playUnlockChime(); }}
@@ -2280,14 +2308,14 @@ function App() {
               <h2 className="modal-title">Parent Lock</h2>
               <button className="close-btn" onClick={() => setPinLockOpen(false)}>×</button>
             </div>
-            
+
             <p style={{ fontWeight: 600, marginBottom: '8px' }}>Type PIN to open settings</p>
             <p style={{ fontSize: '0.8rem', color: 'var(--lego-gray-dark)' }}>(Hint: Default PIN is 1234)</p>
 
             <div className="pin-display">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className={`pin-dot ${pinInput.length > i ? 'active' : ''} ${pinError ? 'red' : ''}`}
                 ></div>
               ))}
@@ -2328,19 +2356,19 @@ function App() {
 
             {/* Dashboard Tabs */}
             <div className="tabs-container">
-              <button 
+              <button
                 className={`tab-btn ${parentTab === 'tasks' ? 'active' : ''}`}
                 onClick={() => setParentTab('tasks')}
               >
                 📝 Routines
               </button>
-              <button 
+              <button
                 className={`tab-btn ${parentTab === 'logs' ? 'active' : ''}`}
                 onClick={() => setParentTab('logs')}
               >
                 📜 Records Logs
               </button>
-              <button 
+              <button
                 className={`tab-btn ${parentTab === 'profiles' ? 'active' : ''}`}
                 onClick={() => setParentTab('profiles')}
               >
@@ -2352,13 +2380,15 @@ function App() {
             {parentTab === 'tasks' && (
               <div>
                 <form onSubmit={handleAddTask} className="lego-card" style={{ padding: '16px', marginBottom: '20px', borderSize: '2px' }}>
-                  <h3 style={{ marginBottom: '12px', textAlign: 'left' }}>Add New Routine Task</h3>
-                  
+                  <h3 style={{ marginBottom: '12px', textAlign: 'left' }}>
+                    {editingTaskId ? 'Edit Routine Task' : 'Add New Routine Task'}
+                  </h3>
+
                   <div className="form-group">
                     <label>Task Title</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
+                    <input
+                      type="text"
+                      className="form-control"
                       placeholder="e.g. Brush teeth, Tidy blocks"
                       value={newTaskTitle}
                       onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -2369,8 +2399,8 @@ function App() {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Start Time</label>
-                      <input 
-                        type="time" 
+                      <input
+                        type="time"
                         className="form-control"
                         value={newTaskStart}
                         onChange={(e) => setNewTaskStart(e.target.value)}
@@ -2378,20 +2408,20 @@ function App() {
                       />
                     </div>
                     <div className="form-group">
-                      <label>Duration (Hours)</label>
-                      <select 
+                      <label>Duration (Minutes)</label>
+                      <input
+                        type="number"
                         className="form-control"
+                        min="5"
+                        max="10080"
+                        step="5"
                         value={newTaskDuration}
                         onChange={(e) => setNewTaskDuration(e.target.value)}
-                      >
-                        <option value="0.25">15 Minutes</option>
-                        <option value="0.5">30 Minutes</option>
-                        <option value="0.75">45 Minutes</option>
-                        <option value="1.0">1 Hour</option>
-                        <option value="1.5">1.5 Hours</option>
-                        <option value="2.0">2 Hours</option>
-                        <option value="3.0">3 Hours</option>
-                      </select>
+                        required
+                      />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--lego-gray-dark)', fontWeight: 600 }}>
+                        Use 1440 for 1 day, 4320 for 3 days.
+                      </span>
                     </div>
                   </div>
 
@@ -2399,7 +2429,7 @@ function App() {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Activity Type</label>
-                      <select 
+                      <select
                         className="form-control"
                         value={newTaskType}
                         onChange={(e) => setNewTaskType(e.target.value)}
@@ -2411,7 +2441,7 @@ function App() {
                     </div>
                     <div className="form-group">
                       <label>Frequency</label>
-                      <select 
+                      <select
                         className="form-control"
                         value={newTaskFreq}
                         onChange={(e) => setNewTaskFreq(e.target.value)}
@@ -2456,10 +2486,22 @@ function App() {
                     </div>
                   </div>
 
-                  <button type="submit" className="lego-button green" style={{ width: '100%', marginTop: '10px' }}>
-                    <Plus size={20} />
-                    <span>Add Task to Timeline</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                    <button type="submit" className="lego-button green" style={{ flex: '1 1 220px' }}>
+                      {editingTaskId ? <Pencil size={20} /> : <Plus size={20} />}
+                      <span>{editingTaskId ? 'Update Routine' : 'Add Task to Timeline'}</span>
+                    </button>
+                    {editingTaskId && (
+                      <button
+                        type="button"
+                        className="lego-button gray"
+                        onClick={handleCancelEditTask}
+                        style={{ flex: '1 1 160px' }}
+                      >
+                        <span>Cancel Edit</span>
+                      </button>
+                    )}
+                  </div>
                 </form>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -2475,10 +2517,10 @@ function App() {
                     return (
                       <div key={t.id} className="parent-item">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ 
-                            background: `var(--lego-${t.color})`, 
-                            padding: '6px', 
-                            borderRadius: '8px', 
+                          <div style={{
+                            background: `var(--lego-${t.color})`,
+                            padding: '6px',
+                            borderRadius: '8px',
                             color: t.color === 'yellow' ? 'black' : 'white',
                             border: '2px solid black'
                           }}>
@@ -2492,18 +2534,29 @@ function App() {
                               </span>
                             </p>
                             <p style={{ fontSize: '0.8rem', color: 'var(--lego-gray-dark)' }}>
-                              Start: {Math.floor(t.startTime)}:{String(Math.round((t.startTime % 1) * 60)).padStart(2, '0')} | Duration: {t.duration}h
+                              Start: {Math.floor(t.startTime)}:{String(Math.round((t.startTime % 1) * 60)).padStart(2, '0')} | Duration: {Math.round(t.duration * 60)} min
                             </p>
                           </div>
                         </div>
 
-                        <button 
-                          className="lego-button red"
-                          onClick={() => handleDeleteTask(t.id, t.title)}
-                          style={{ padding: '6px 10px', boxShadow: '2px 2px 0 black' }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                          <button
+                            className="lego-button blue"
+                            onClick={() => handleEditTask(t)}
+                            style={{ padding: '6px 10px', boxShadow: '2px 2px 0 black' }}
+                            title="Edit routine"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            className="lego-button red"
+                            onClick={() => handleDeleteTask(t.id, t.title)}
+                            style={{ padding: '6px 10px', boxShadow: '2px 2px 0 black' }}
+                            title="Delete routine"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -2516,8 +2569,8 @@ function App() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <h3>Access & Action Log</h3>
-                  <button 
-                    className="lego-button red" 
+                  <button
+                    className="lego-button red"
                     onClick={() => { setLogs([]); playSlideWhistle(); }}
                     style={{ padding: '6px 12px', fontSize: '0.85rem' }}
                   >
@@ -2545,7 +2598,7 @@ function App() {
                           <tr key={log.id}>
                             <td style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{log.timestamp}</td>
                             <td style={{ fontWeight: 600 }}>
-                              {log.user} 
+                              {log.user}
                               <span style={{ fontSize: '0.7rem', color: 'var(--lego-gray-dark)', marginLeft: '4px' }}>
                                 ({log.role})
                               </span>
@@ -2577,9 +2630,9 @@ function App() {
                   <div className="form-row">
                     <div className="form-group">
                       <label>Child Name</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
+                      <input
+                        type="text"
+                        className="form-control"
                         placeholder="e.g. Liam, Emma"
                         value={newProfileName}
                         onChange={(e) => setNewProfileName(e.target.value)}
@@ -2588,8 +2641,8 @@ function App() {
                     </div>
                     <div className="form-group">
                       <label>Age</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         min="2"
                         max="12"
                         className="form-control"
@@ -2608,8 +2661,8 @@ function App() {
                 <h3 style={{ marginBottom: '10px', textAlign: 'left' }}>Configured Profiles</h3>
                 <div className="parent-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {profiles.map(p => (
-                    <div 
-                      key={p.id} 
+                    <div
+                      key={p.id}
                       className="parent-item"
                       style={{
                         display: 'flex',
@@ -2627,13 +2680,13 @@ function App() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--lego-gray-dark)', margin: 0 }}>Playful Name:</label>
-                            <input 
+                            <input
                               type="text"
                               className="form-control"
-                              style={{ 
-                                padding: '4px 8px', 
-                                fontSize: '0.85rem', 
-                                width: '220px', 
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '0.85rem',
+                                width: '220px',
                                 border: '2px solid var(--lego-black)',
                                 borderRadius: '4px'
                               }}
@@ -2646,10 +2699,10 @@ function App() {
                           </span>
                         </div>
                       </div>
-                      
-                      <button 
+
+                      <button
                         type="button"
-                        className="lego-button red" 
+                        className="lego-button red"
                         onClick={() => handleDeleteProfile(p.id, p.name)}
                         style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="Remove Profile"
@@ -2670,8 +2723,8 @@ function App() {
           <div className="modal-content series-modal" style={{ maxWidth: '400px', padding: '24px', textAlign: 'center' }}>
             <div className="modal-header" style={{ borderBottom: 'none', padding: 0, justifyContent: 'center', position: 'relative' }}>
               <h2 className="modal-title" style={{ fontSize: '1.4rem' }}>⏰ {seriesModal.title}</h2>
-              <button 
-                className="close-btn" 
+              <button
+                className="close-btn"
                 onClick={() => { playSlideWhistle(); seriesModal.onCancel(); }}
                 style={{ position: 'absolute', right: '-10px', top: '-10px' }}
               >×</button>
@@ -2680,23 +2733,23 @@ function App() {
               {seriesModal.message}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-              <button 
-                className="lego-button yellow" 
+              <button
+                className="lego-button yellow"
                 onClick={seriesModal.onConfirmEvent}
                 autoFocus
                 style={{ width: '100%', padding: '14px', justifyContent: 'center', fontSize: '1.1rem' }}
               >
                 <span>Only Today (This Event)</span>
               </button>
-              <button 
-                className="lego-button blue" 
+              <button
+                className="lego-button blue"
                 onClick={seriesModal.onConfirmSeries}
                 style={{ width: '100%', padding: '14px', justifyContent: 'center', fontSize: '1.1rem' }}
               >
                 <span>All Days (Series)</span>
               </button>
-              <button 
-                className="lego-button gray" 
+              <button
+                className="lego-button gray"
                 onClick={() => { playSlideWhistle(); seriesModal.onCancel(); }}
                 style={{ width: '100%', padding: '10px', justifyContent: 'center', fontSize: '0.95rem', background: '#eaeaea', border: '3px solid var(--lego-black)' }}
               >
@@ -2725,7 +2778,7 @@ function App() {
 
       {/* Component Inspector Hover Dialog */}
       {hoveredComponent && (
-        <div 
+        <div
           className="component-inspector-dialog"
           style={{
             left: `${hoveredComponent.x + 15}px`,

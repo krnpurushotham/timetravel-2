@@ -463,7 +463,6 @@ body {
   text-shadow: 1px 1px 0 var(--lego-black);
 }
 
-/* Vertical red cursor for "NOW" */
 .now-indicator {
   position: absolute;
   top: 0;
@@ -477,14 +476,46 @@ body {
   transform: translateX(-50%);
 }
 
+.now-footer-indicator {
+  position: absolute;
+  bottom: 2px;
+  transform: translateX(-50%);
+  z-index: 30;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.now-footer-line {
+  width: 4px;
+  height: 22px;
+  background: rgba(220, 38, 38, 0.52);
+  border-radius: 999px;
+  box-shadow: 0 0 6px rgba(220, 38, 38, 0.35);
+}
+
+.now-footer-time {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(26, 26, 26, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 1px 5px;
+  line-height: 1.1;
+  backdrop-filter: blur(2px);
+}
+
 /* Walking character sitting directly on "NOW" mark */
 .now-character {
   position: absolute;
-  bottom: 30px; /* Sits directly above timeline beam */
-  width: 48px;
-  height: 64px;
+  bottom: 34px; /* Sits directly above timeline beam */
+  width: 112px;
+  height: 168px;
   transform: translateX(-50%);
-  z-index: 8;
+  z-index: 9;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -493,37 +524,46 @@ body {
   filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.35));
 }
 
+.now-character-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+  pointer-events: none;
+}
+
 .now-character-head {
-  width: 24px;
-  height: 24px;
+  width: 48px;
+  height: 48px;
   background: var(--lego-yellow);
-  border: 3px solid var(--lego-black);
+  border: 5px solid var(--lego-black);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 2.1rem;
   z-index: 3;
 }
 
 .now-character-head::before {
   content: '';
   position: absolute;
-  top: -3px;
-  width: 8px;
-  height: 4px;
+  top: -7px;
+  width: 18px;
+  height: 8px;
   background: var(--lego-yellow);
-  border: 2px solid var(--lego-black);
+  border: 4px solid var(--lego-black);
   border-bottom: none;
   border-radius: 2px 2px 0 0;
 }
 
 .now-character-torso {
-  width: 32px;
-  height: 28px;
-  border: 3px solid var(--lego-black);
-  border-radius: 6px 6px 2px 2px;
-  margin-top: -2px;
+  width: 64px;
+  height: 56px;
+  border: 5px solid var(--lego-black);
+  border-radius: 10px 10px 4px 4px;
+  margin-top: -4px;
   position: relative;
   z-index: 2;
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4);
@@ -538,18 +578,18 @@ body {
 
 .now-character-legs {
   display: flex;
-  gap: 2px;
-  width: 28px;
-  height: 14px;
-  margin-top: -2px;
+  gap: 4px;
+  width: 56px;
+  height: 28px;
+  margin-top: -4px;
   z-index: 1;
 }
 
 .now-character-legs span {
   flex: 1;
   background: var(--lego-gray-dark);
-  border: 3px solid var(--lego-black);
-  border-radius: 0 0 4px 4px;
+  border: 5px solid var(--lego-black);
+  border-radius: 0 0 7px 7px;
 }
 
 /* Leg walking animations active */
@@ -1583,7 +1623,5 @@ body {
   margin-top: -4px;
   line-height: 1;
 }
-
-
 
 
