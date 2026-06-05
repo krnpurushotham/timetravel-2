@@ -32,6 +32,9 @@ import {
   playErrorBuzz,
   playTick
 } from './utils/audio';
+import { LegoMinifig } from './components/LegoMinifig';
+import { LegoConfigurator } from './components/LegoConfigurator';
+
 
 // Map icon names to Lucide React components
 const IconMap = {
@@ -92,9 +95,22 @@ const getAmsterdamTimestamp = () => {
 
 // Initial profiles
 const DEFAULT_PROFILES = [
-  { id: 'liam', name: 'Lego Liam 🚀', age: 4, role: 'child' },
-  { id: 'emma', name: 'Space Emma 🛰️', age: 6, role: 'child' }
+  {
+    id: 'liam',
+    name: 'Lego Liam 🚀',
+    age: 4,
+    role: 'child',
+    minifig: { hair: 'spiky', head: 'neutral', torso: 'blue_c', legs: 'red', accessory: 'none', badges: [] }
+  },
+  {
+    id: 'emma',
+    name: 'Space Emma 🛰️',
+    age: 6,
+    role: 'child',
+    minifig: { hair: 'ponytail', head: 'winking', torso: 'sailor', legs: 'lime', accessory: 'banana', badges: [] }
+  }
 ];
+
 
 const TIMELINE_DAY_OFFSETS = [-3, -2, -1, 0, 1, 2, 3];
 
@@ -494,12 +510,24 @@ function App() {
   const [profiles, setProfiles] = useState(() => {
     try {
       const saved = localStorage.getItem('lego_profiles');
-      return saved ? JSON.parse(saved) : DEFAULT_PROFILES;
+      const loaded = saved ? JSON.parse(saved) : DEFAULT_PROFILES;
+      return loaded.map(p => ({
+        ...p,
+        minifig: p.minifig || {
+          hair: p.id === 'emma' ? 'ponytail' : 'spiky',
+          head: p.id === 'emma' ? 'winking' : 'neutral',
+          torso: p.id === 'emma' ? 'sailor' : 'blue_c',
+          legs: p.id === 'emma' ? 'lime' : 'red',
+          accessory: p.id === 'emma' ? 'banana' : 'none',
+          badges: []
+        }
+      }));
     } catch (e) {
       console.warn("Failed parsing profiles, loading defaults:", e);
       return DEFAULT_PROFILES;
     }
   });
+
 
   const [activeProfile, setActiveProfile] = useState(() => {
     try {
@@ -1904,7 +1932,11 @@ function App() {
     }));
   }).sort((a, b) => a.startHour - b.startHour);
 
+  const activeProfObj = profiles.find(p => p.id === activeProfile) || profiles[0];
+  const activeMinifig = activeProfObj?.minifig || { hair: 'spiky', head: 'neutral', torso: 'blue_c', legs: 'red', accessory: 'none', badges: [] };
+
   return (
+
     <>
       {/* Top Header / Profile Switcher */}
       <header className="top-bar" data-component="TopHeader">
@@ -1926,7 +1958,14 @@ function App() {
           >
             🔋 Mood Station
           </button>
+          <button
+            className={`profile-btn ${activePage === 'configurator' ? 'active' : ''}`}
+            onClick={() => { setActivePage('configurator'); playLegoPop(); }}
+          >
+            🧑‍🚀 Minifig Builder
+          </button>
         </div>
+
 
         {/* Profile Switcher */}
         <div className="profile-selector" data-component="ProfileSelector">
@@ -2214,12 +2253,13 @@ function App() {
 	                      spawnExplosionParticles(nowX, window.innerHeight - 150, 'yellow');
 	                    }}
 	                  >
-	                    <img
-	                      className="now-character-img"
-	                      src="/lego_cadet_realistic.png"
-	                      alt="Lego Time Patrol Cadet"
-	                      draggable="false"
+	                    <LegoMinifig
+	                      {...activeMinifig}
+	                      size={72}
+	                      isWalking={isWalking}
+	                      moodAction={cadetAction}
 	                    />
+
 	                  </div>
 
 
@@ -2229,7 +2269,7 @@ function App() {
             </div>
           </section>
         </>
-      ) : (
+      ) : activePage === 'mood' ? (
         /* Mood Station dedicated full-screen page */
         <section className="mood-station-page">
           <div className="mood-station-panel" data-component="MoodJoystickBoard">
@@ -2298,7 +2338,17 @@ function App() {
             </button>
           </div>
         </section>
+      ) : (
+        <LegoConfigurator
+          activeProfile={activeProfObj}
+          minifig={activeMinifig}
+          onChange={(newMinifig) => {
+            setProfiles(prev => prev.map(p => p.id === activeProfile ? { ...p, minifig: newMinifig } : p));
+          }}
+          onSave={() => setActivePage('timeline')}
+        />
       )}
+
 
       {/* PIN Lock Screen */}
       {pinLockOpen && (
