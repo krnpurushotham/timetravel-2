@@ -1,16 +1,63 @@
-# React + Vite
+# Lego Time Patrol
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Lego Time Patrol is a local-first child routine planner prototype. It uses a horizontal Lego baseplate timeline, routine bricks, a configurable Lego Cadet mascot, parent controls, a mood station, sky/time context, and Web Audio feedback.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Vite + React
+- CSS3/SVG UI
+- Web Audio API
+- SunCalc for Amsterdam sunrise/sunset and moon calculations
+- LocalStorage for prototype persistence
 
-## React Compiler
+## Current State
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Implemented:
 
-## Expanding the ESLint configuration
+- Panning/zooming timeline with inertia and day rollover.
+- Neighboring-day rendering and multi-day routine blocks.
+- Routine add/edit/delete/reset in the parent dashboard.
+- Today-only vs all-days routine update confirmation.
+- Duration input in minutes with internal hour conversion.
+- Completion, skip, resize, drag scheduling, and action logs.
+- Mood Station with 2D mood/energy joystick.
+- Profile-specific Lego minifig configuration.
+- Lego configurator page with heads, hair, outfits, legs, accessories, ability chips, and central preview.
+- Dynamic sky, sun, moon, clouds, and scenery.
+- Procedural sound effects.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Pending:
+
+- Profile-scoped schedules/logs.
+- Configurable parent PIN.
+- Automated tests.
+- Stop-motion day review.
+- Countdown and active routine progress overlays.
+- Weekly recurrence, kit alerts, bedtime, family, and social modules.
+
+## Development
+
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+```
+
+The app runs locally through Vite, usually at:
+
+```text
+http://localhost:5173/
+```
+
+## Documentation
+
+- [Task board](TODO.md)
+- [Implementation plan](docs/ImplementationPlan.md)
+- [Functional spec](docs/FSD.md)
+- [User stories](docs/UserStories.md)
+- [Feature index](docs/TimeTraveler_FeatureIndex.docx)
+
+## Notes
+
+This is still a prototype. Data is stored in browser LocalStorage and should not be treated as production-safe persistence.

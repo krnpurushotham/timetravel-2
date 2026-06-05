@@ -1,6 +1,6 @@
 # Lego Time Patrol — Functional Specification Document (FSD)
 
-> **Version:** 1.1 | **Date:** June 2026 | **Status:** Draft
+> **Version:** 1.2 | **Date:** June 2026 | **Status:** Draft / Prototype Implemented
 
 ---
 
@@ -30,6 +30,26 @@ The app serves three audiences simultaneously:
 ## 3. System Architecture Overview
 
 ```
+
+### 3.1 Current Prototype Status
+
+The current implementation is a local-first Vite/React prototype using LocalStorage and Web Audio. The following major flows are implemented:
+
+- Timeline navigation, inertia panning, zoom controls, date rollover, and neighboring-day context.
+- Routine bricks with completion, skip, drag scheduling, resize handles, status styling, and parent/child constraints.
+- Parent PIN gate with routine add/edit/delete/reset, today-only vs series confirmation, logs, and profile editing.
+- Multi-day visual blocks through parent-entered minute durations converted to hour values internally.
+- Mood Station with 2D mood/energy joystick.
+- Profile-specific Lego minifig configuration and SVG minifig timeline mascot.
+- Lego configurator page with reference-inspired selector panels and central minifig preview.
+- Sunrise/sunset/moon phase sky system and procedural audio.
+
+The following remain incomplete or prototype-only:
+
+- Profile-scoped routine storage, logs, and calendar data.
+- Configurable parent PIN.
+- Automated tests and migration/versioning for LocalStorage.
+- Stop-motion review, countdowns, active progress builder, weekly rhythm, bedtime, family, and social modules.
 ┌─────────────────────────────────────────────────────┐
 │                   Child Interface                   │
 │  Baseplate Timeline · Cadet Minifigure · Bricks     │
@@ -60,6 +80,7 @@ The app serves three audiences simultaneously:
 - A fixed, horizontal timeline styled as a studded Lego beam representing a 24-hour cycle.
 - Background sky gradient shifts based on current system time (dawn orange -> day blue -> dusk purple -> night dark).
 - Serves as the central visual spine of the application.
+- **Current status:** Implemented with continuous neighboring-day rendering, zoom, panning, inertia, date rollover, and a small footer-style now indicator.
 
 #### F-02: Cadet Minifigure Mascot
 - A Lego Minifigure avatar positioned on the current time mark.
@@ -67,22 +88,26 @@ The app serves three audiences simultaneously:
 - States: `idle` | `walking` (manual scroll) | `activity-specific` | `no-no` | `cheer` | `shrug`.
 - Points back toward current time when the user scrolls away to provide a "Return to Now" cue.
 - Face changes expression based on the child's logged mood.
+- **Current status:** Implemented as an SVG minifig driven by the active profile's configurator state. Walk and action hooks exist; activity-specific costume swaps are not yet implemented.
 
 #### F-03: Lego Routine Bricks
 - Color-coded, studded bricks placed at scheduled start times on the Baseplate Timeline.
 - States: `pending` (locked flat) | `completed` (marked with a gold star trophy) | `skipped` (faded, grayed out).
 - Bricks scale up slightly as they approach the Cadet's center position.
 - Color schema: Mandatory = Yellow/Red | Optional = Blue/Green/Orange | Surprise = Purple.
+- **Current status:** Implemented with zoom-aware minimum width and multi-day visual spans. Active-task pressure effects are not yet implemented.
 
 #### F-04: Temporal Zoom
 - **Macro View:** Full 24-hour cycle (big picture).
 - **Micro View:** 2-hour window (precise scheduling and dragging).
 - Pinch-to-zoom gesture or button controls.
 - Zoom level drives Deconstruction Bin capacity (see F-23).
+- **Current status:** Button-based zoom is implemented. Pinch-to-zoom and Deconstruction Bin capacity linkage are pending.
 
 #### F-05: Parallax Baseplate Scroll
 - Inertia-based horizontal scrolling moving the baseplate beneath the Cadet figure.
 - High friction prevents accidental scrolling from sudden touches.
+- **Current status:** Implemented with momentum and day rollover across 0:00/24:00.
 
 #### F-06: Action Resolver
 - Polls position every 500ms to detect which brick is in the Center Active Zone.
@@ -99,6 +124,7 @@ The app serves three audiences simultaneously:
 - **At/after start time:** Marked `completed` -> Satisfying Lego pop snap sound, star trophy pop-up, and 1x1 stud particle burst.
 - Star crest remains permanently on the timeline.
 - Logs: `scheduled_time` + `actual_time`.
+- **Current status:** Completion toggle, pop sound, trophy styling, visual particles, and logs are implemented. Actual-vs-scheduled structured log fields and physics studs are pending.
 
 #### F-19: Live-Planning Mode (Resize/Move)
 - **Trigger:** Long-press or click routine brick.
@@ -106,6 +132,7 @@ The app serves three audiences simultaneously:
 - Bricks can be dragged horizontally to change start times (snaps to 5-minute ticks).
 - Dragging the right handle resizes task duration (snaps to 5-minute ticks).
 - Default: Locked behind Parental PIN but editable for child-directed optional items.
+- **Current status:** Implemented. Parent dashboard also supports form-based editing, duration input in minutes, and today-only vs series confirmation.
 
 #### F-21: Deconstruction Bin (Skipping)
 - **Trigger:** Swipe a Routine Brick downward.
@@ -115,6 +142,7 @@ The app serves three audiences simultaneously:
 #### F-20: Passcode Provisioning
 - Dormant 4-digit PIN lock (default PIN `1234`) with Lego Dial Keypad.
 - Gates parental configuration and log review.
+- **Current status:** Implemented as a hardcoded prototype PIN. Configurable PIN and recovery flow are pending.
 
 ---
 
@@ -151,10 +179,12 @@ The app serves three audiences simultaneously:
 #### F-12: Priority Enforcement Layer
 - **Mandatory (Fixed):** Locked in place. Resists dragging/swiping; misses trigger a "Look Back!" Cadet prompt.
 - **Optional (Flexible):** Can be shifted within parent limits; exceeding limits turns the brick red.
+- **Current status:** Mandatory drag blocking and error feedback are implemented. Missed-task prompts are pending.
 
 #### F-13: Chain Reaction (Ripple Effect)
 - Shifting an Optional/Flexible brick pushes subsequent optional bricks down the timeline.
 - Fixed items block movement; exceeding limits snaps the brick back with a Cadet "no-no" head shake.
+- **Current status:** Implemented for current-day task dragging with fixed-task boundaries.
 
 ---
 
@@ -223,9 +253,26 @@ The app serves three audiences simultaneously:
 - Accessible via Mood Station or Cadet tap.
 - Joystick trackpad containing 6 columns: 😢 Sad, 😨 Afraid, 😡 Angry, 😌 Calm, 😊 Happy, 😜 Naughty.
 - Background responds: rain effects for sad/angry, bright sunlight for happy.
+- **Current status:** Mood Station UI and energy value are implemented. Background response and mood history storage are pending.
 
 #### F-32: Personal Locker
 - Styled as a Lego treasure chest. Gated/encrypted history of daily moods and achievements.
+
+---
+
+### M10A — Lego Cadet Configurator
+
+#### F-C01: Minifig Character Builder
+- Child/parent can customize the active profile's Lego Cadet.
+- Categories: heads/expressions, headwear/hair, torso/outfits, leg choices, accessories/tools, and ability chips.
+- The configurator uses a light blue Lego workshop layout with rounded selector trays, large part tiles, central minifig preview, studded baseplate, and save/preview area.
+- Saved character state is stored on the active profile and used by the timeline mascot.
+- **Current status:** Implemented.
+
+#### F-C02: Profile-Specific Character State
+- Each child profile stores its own minifig configuration.
+- Switching profiles updates the timeline mascot.
+- **Current status:** Implemented for minifig state only. Full schedule/log isolation by profile is pending.
 
 ---
 

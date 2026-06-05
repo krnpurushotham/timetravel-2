@@ -1,6 +1,6 @@
 # Lego Time Patrol — User Stories
 
-> **Version:** 1.1 | **Date:** June 2026
+> **Version:** 1.2 | **Date:** June 2026
 > Personas: **Child (C)**, **Parent (P)**, **Family (F)**, **Grandparent (G)**
 
 ---
@@ -13,6 +13,7 @@
 | US-02 | C | As a child, I want my Cadet Minifigure to walk along the timeline as time passes. | Cadet walks/idles at the current system time line; legs animate. |
 | US-03 | C | As a child, I want to scroll forward to peek at what Lego builds are scheduled later. | Swiping timeline scrolls baseplate smoothly; Cadet walks in place, then points back to current time when idle. |
 | US-04 | P | As a parent, I want to zoom into a 2-hour micro view to make precise brick duration adjustments. | Pinch gesture or zoom controls change visible window between 2h (micro) and 24h (macro). |
+| US-05 | P | As a parent, I want the timeline to continue into the next day rather than repeat at 24:00 so I can plan multi-day events. | Scrolling across midnight changes the date; neighboring-day blocks render in context; long routines can span multiple days. |
 
 ---
 
@@ -24,6 +25,18 @@
 | US-07 | P | As a parent, I want to resize a routine's duration by dragging its right handle. | routine brick selected displays resize stud handle on the right edge; dragging shifts duration in 5-min steps. |
 | US-08 | C | As a child, I want to swipe a routine brick down to skip it and watch it deconstruct into a pile. | Swiped-down brick triggers slide whistle and drops as loose bricks in the corner. |
 | US-09 | P | As a parent, I want to ensure my child cannot drag or deconstruct mandatory bricks like bedtime or school. | Mandatory/Fixed bricks ignore swipe-down or horizontal drag actions. |
+| US-21 | P | As a parent, I want to edit an existing routine from the parent dashboard. | Edit populates the routine form; saving offers today-only or series update; cancel clears the edit state without changing data. |
+| US-22 | P | As a parent, I want to enter duration in minutes while the app handles time math internally. | Duration input is minutes; app stores/converts to internal hours; parent list displays minutes. |
+
+---
+
+## Epic 2A: Cadet Character Configuration
+
+| ID | Persona | Story | Acceptance Criteria |
+|----|---------|-------|---------------------|
+| US-23 | C | As a child, I want to customize my Lego Cadet with faces, hair, outfits, legs, tools, and ability chips. | Configurator presents large Lego-style tiles and updates a central minifig preview immediately. |
+| US-24 | C | As a child, I want my saved Cadet to appear on the timeline. | Saving the configurator updates the active profile and timeline mascot. |
+| US-25 | P | As a parent, I want each child profile to have its own Cadet character. | Profile records store `minifig` configuration independently. |
 
 ---
 
@@ -63,3 +76,13 @@
 |----|---------|-------|---------------------|
 | US-19 | F | As a family, we want our individual plates to couple together when we share routines. | Junction Map renders parallel plates; merges lock together with magnetic click sound. |
 | US-20 | P | As a parent, I want to invite my child's friend to build together at the playground while hiding our home location. | Social station map lists playgrounds; friend invites display ghost wagons; home coordinates obfuscated. |
+
+---
+
+## Epic 7: Technical Quality & Data Safety
+
+| ID | Persona | Story | Acceptance Criteria |
+|----|---------|-------|---------------------|
+| US-26 | Dev | As a maintainer, I want automated tests around time and scheduling logic so timeline changes do not regress. | Tests cover date keys, day rollover, duration conversion, drag constraints, and series updates. |
+| US-27 | P | As a parent with multiple children, I want each profile to have separate routines and logs. | Templates, daily task maps, logs, surprise reveals, and minifig state are profile-scoped. |
+| US-28 | P | As a parent, I want to set/change the parent PIN. | PIN is not hardcoded; setup/change flow is gated and stored locally. |
